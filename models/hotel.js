@@ -74,7 +74,7 @@ const Hotel = sequelize.define(
       type: DataTypes.JSON, 
       allowNull: true 
     },
-    createdat: { 
+     createdat: { 
       type: DataTypes.DATE, 
       allowNull: false, 
       defaultValue: DataTypes.NOW 
@@ -82,16 +82,16 @@ const Hotel = sequelize.define(
     updatedat: { 
       type: DataTypes.DATE, 
       allowNull: true 
-    },
+    }, 
   },
   {
     tableName: 'hotels',
-    timestamps: true,
+    timestamps: false,
   }
 );
 
 // Relacionamentos
-Hotel.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
-Hotel.belongsTo(HotelChain, { foreignKey: 'hotelChainId', as: 'hotelChain' });
+Hotel.belongsTo(Category, { foreignKey: 'categoryid', as: 'category' });
+Hotel.belongsTo(HotelChain, { foreignKey: 'hotelchainid', as: 'hotelChain' });
 
 module.exports = Hotel;
