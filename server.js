@@ -1,6 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const { sequelize } = require('./server');
+const { sequelize } = require('./config');
 const hotelRoutes = require('./routes/hotelRoutes');
 
 dotenv.config();
@@ -11,7 +11,7 @@ app.use(express.json());
 
 // app.use('/api/hotels', hotelRoutes);
 
-/* sequelize
+ sequelize
   .authenticate()
   .then(() => {
     console.log(
@@ -24,7 +24,7 @@ app.use(express.json());
 
 sequelize.sync({ force: false }).then(() => {
   console.log('Database synchronized');
-}); */
+}); 
 
 const PORT = process.env.DB_PORT || 3000;
 app.listen(PORT, () => {
