@@ -9,7 +9,7 @@ const app = express();
 
 app.use(express.json());
 
-// app.use('/api/hotels', hotelRoutes);
+ app.use('/api/hotels', hotelRoutes);
 
  sequelize
   .authenticate()
