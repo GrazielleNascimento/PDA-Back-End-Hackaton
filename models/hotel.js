@@ -51,7 +51,7 @@ const Hotel = sequelize.define(
       type: DataTypes.STRING, 
       allowNull: false 
     },
-    placeId: { 
+    placeid: { 
       type: DataTypes.STRING, 
       allowNull: false 
     },
@@ -74,12 +74,12 @@ const Hotel = sequelize.define(
       type: DataTypes.JSON, 
       allowNull: true 
     },
-    createdAt: { 
+    createdat: { 
       type: DataTypes.DATE, 
       allowNull: false, 
       defaultValue: DataTypes.NOW 
     },
-    updatedAt: { 
+    updatedat: { 
       type: DataTypes.DATE, 
       allowNull: true 
     },
