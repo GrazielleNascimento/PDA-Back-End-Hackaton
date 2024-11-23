@@ -1,5 +1,7 @@
-const { Sequelize, DataTypes } = require('sequelize');
+const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config');
+const Category = require('./category');
+const HotelChain = require('./hotelChain');
 
 const Hotel = sequelize.define(
   'Hotel',
@@ -20,12 +22,15 @@ const Hotel = sequelize.define(
     amenities: { type: DataTypes.JSON, allowNull: true },
     pois: { type: DataTypes.JSON, allowNull: true },
     reviews: { type: DataTypes.JSON, allowNull: true },
-    category: { type: DataTypes.STRING, allowNull: false }, 
   },
   {
     tableName: 'hotels',
     timestamps: true,
   }
 );
+
+// Relacionamentos
+Hotel.belongsTo(Category, { foreignKey: 'categoryId', as: 'category' });
+Hotel.belongsTo(HotelChain, { foreignKey: 'hotelChainId', as: 'hotelChain' });
 
 module.exports = Hotel;
