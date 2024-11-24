@@ -2,36 +2,44 @@ const { Op } = require('sequelize');
 const Hotel = require('../models/hotel');
 const Category = require('../models/category');
 const HotelChain = require('../models/hotelChain');
+const HotelFilter = require('../filters/hotelFilter');
 
 const HotelController = {
-  // Listar hotéis com filtros, categorização e paginação
   async getHotels(req, res) {
     try {
       const { category, hotelChain, page = 1, limit = 10 } = req.query;
-
-      // Validação de parâmetros
+  
       if (isNaN(page) || isNaN(limit)) {
         return res.status(400).json({ error: 'Invalid pagination parameters' });
       }
-
+  
       const offset = (page - 1) * limit;
-      const whereClause = {};
-      if (category) whereClause.categoryid = category;
-      if (hotelChain) whereClause.hotelchainid = hotelChain;
-
+  
+      const hotelFilter = new HotelFilter(req.query);
+  
+      const whereClause = hotelFilter.buildWhereClause();
+  
+      const pagination = hotelFilter.buildPagination();
+  
+      const order = hotelFilter.buildOrderBy();
+  
+      // Realiza a consulta com Sequelize
       const { count, rows } = await Hotel.findAndCountAll({
         where: whereClause,
         include: [
           { model: Category, as: 'category' },
           { model: HotelChain, as: 'hotelChain' },
         ],
-        limit: parseInt(limit, 10),
-        offset: parseInt(offset, 10),
+        limit: pagination.limit,
+        offset: pagination.offset,
+        order: order, 
       });
-
+  
+  
       if (rows.length === 0) {
         return res.status(404).json({ message: 'No hotels found' });
       }
+  
 
       res.status(200).json({
         data: rows,
@@ -47,7 +55,7 @@ const HotelController = {
     }
   },
 
-  // Buscar hotel por ID
+
   async getHotelById(req, res) {
     try {
       const { id } = req.params;
@@ -71,7 +79,6 @@ const HotelController = {
     }
   },
 
-  // Buscar hotéis por nome
   async getHotelsByName(req, res) {
     try {
       const { name } = req.params;
@@ -169,12 +176,11 @@ const HotelController = {
     }
   },
 
-  // Criar novo hotel
+
   async createHotel(req, res) {
     try {
       const { name, categoryid, hotelchainid } = req.body;
 
-      // Validação básica
       if (!name || !categoryid || !hotelchainid) {
         return res
           .status(400)
@@ -191,7 +197,7 @@ const HotelController = {
     }
   },
 
-  // Criar nova categoria
+
   async createCategory(req, res) {
     try {
       const { name } = req.body;
@@ -208,7 +214,6 @@ const HotelController = {
     }
   },
 
-  // Criar nova cadeia de hotéis
   async createHotelChain(req, res) {
     try {
       const { name } = req.body;
