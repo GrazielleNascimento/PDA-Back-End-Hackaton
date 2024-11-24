@@ -53,11 +53,11 @@ class HotelFilter {
 
   buildPagination() {
     const pagination = {};
-    
+
     // Definindo a página (padrão: 1) e o limite (padrão: 10)
     const page = this.query.page ? parseInt(this.query.page, 10) : 1;
     const limit = this.query.limit ? parseInt(this.query.limit, 10) : 10;
-    
+
     // Calculando o offset para a paginação
     pagination.offset = (page - 1) * limit;
     pagination.limit = limit;
@@ -70,10 +70,13 @@ class HotelFilter {
 
     // Verifica se o campo de ordenação foi fornecido e se é válido
     if (this.query.orderby && this.query.sort) {
-      const validFields = ['name', 'stars', 'city', 'categoryid']; 
-      const validSorts = ['ASC', 'DESC']; 
-      
-      if (validFields.includes(this.query.orderby) && validSorts.includes(this.query.sort.toUpperCase())) {
+      const validFields = ['name', 'stars', 'city', 'categoryid'];
+      const validSorts = ['ASC', 'DESC'];
+
+      if (
+        validFields.includes(this.query.orderby) &&
+        validSorts.includes(this.query.sort.toUpperCase())
+      ) {
         order.push([this.query.orderby, this.query.sort.toUpperCase()]);
       }
     }
