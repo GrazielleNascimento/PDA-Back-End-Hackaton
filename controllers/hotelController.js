@@ -3,26 +3,28 @@ const Hotel = require('../models/hotel');
 const Category = require('../models/category');
 const HotelChain = require('../models/hotelChain');
 const HotelFilter = require('../filters/hotelFilter');
+const axios = require('axios');
+const logger = require('../utils/logger');
 
 const HotelController = {
   async getHotels(req, res) {
     try {
-      const { category, hotelChain, page = 1, limit = 10 } = req.query;
-  
+      const {  page = 1, limit = 10 } = req.query;
+
       if (isNaN(page) || isNaN(limit)) {
         return res.status(400).json({ error: 'Invalid pagination parameters' });
       }
-  
+
       const offset = (page - 1) * limit;
-  
+
       const hotelFilter = new HotelFilter(req.query);
-  
+
       const whereClause = hotelFilter.buildWhereClause();
-  
+
       const pagination = hotelFilter.buildPagination();
-  
+
       const order = hotelFilter.buildOrderBy();
-  
+
       // Realiza a consulta com Sequelize
       const { count, rows } = await Hotel.findAndCountAll({
         where: whereClause,
@@ -32,14 +34,12 @@ const HotelController = {
         ],
         limit: pagination.limit,
         offset: pagination.offset,
-        order: order, 
+        order: order,
       });
-  
-  
+
       if (rows.length === 0) {
         return res.status(404).json({ message: 'No hotels found' });
       }
-  
 
       res.status(200).json({
         data: rows,
@@ -54,7 +54,6 @@ const HotelController = {
       res.status(500).json({ error: 'Failed to fetch hotels' });
     }
   },
-
 
   async getHotelById(req, res) {
     try {
@@ -176,17 +175,14 @@ const HotelController = {
     }
   },
 
-
   async createHotel(req, res) {
     try {
       const { name, categoryid, hotelchainid } = req.body;
 
       if (!name || !categoryid || !hotelchainid) {
-        return res
-          .status(400)
-          .json({
-            error: 'Name, category ID, and hotel chain ID are required',
-          });
+        return res.status(400).json({
+          error: 'Name, category ID, and hotel chain ID are required',
+        });
       }
 
       const hotel = await Hotel.create(req.body);
@@ -196,7 +192,6 @@ const HotelController = {
       res.status(500).json({ error: 'Failed to create hotel' });
     }
   },
-
 
   async createCategory(req, res) {
     try {
@@ -227,6 +222,95 @@ const HotelController = {
     } catch (error) {
       console.error('Error creating hotel chain:', error);
       res.status(500).json({ error: 'Failed to create hotel chain' });
+    }
+  },
+
+  async getHotelGeolocation(req, res) {
+    const requestId = Date.now().toString();
+    logger.info(`[${requestId}] getHotelGeolocation: Request received`, {
+      params: req.params,
+    });
+
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        logger.warn(
+          `[${requestId}] getHotelGeolocation: Hotel ID not provided`,
+          { params: req.params }
+        );
+        return res.status(400).json({
+          error: 'Hotel ID is required',
+        });
+      }
+
+      logger.info(
+        `[${requestId}] getHotelGeolocation: Executing database query`
+      );
+      const queryStartTime = Date.now();
+      const hotel = await Hotel.findByPk(id, {
+        attributes: [
+          'id',
+          'latitude',
+          'longitude',
+          'address',
+          'city',
+          'district',
+        ],
+      });
+      const queryEndTime = Date.now();
+
+      logger.info(`[${requestId}] getHotelGeolocation: Query completed`, {
+        executionTime: `${queryEndTime - queryStartTime}ms`,
+      });
+
+      if (!hotel) {
+        logger.warn(`[${requestId}] getHotelGeolocation: Hotel not found`, {
+          hotelId: id,
+        });
+        return res.status(404).json({
+          message: 'Hotel not found',
+        });
+      }
+
+      // Convert to GeoJSON format
+      logger.info(
+        `[${requestId}] getHotelGeolocation: Preparing GeoJSON response`
+      );
+      const geoJsonResponse = {
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [
+            parseFloat(hotel.longitude),
+            parseFloat(hotel.latitude),
+          ],
+        },
+        properties: {
+          id: hotel.id,
+          name: hotel.name,
+          address: hotel.address,
+          city: hotel.city,
+          district: hotel.district,
+        },
+      };
+
+      logger.info(
+        `[${requestId}] getHotelGeolocation: Sending successful response`
+      );
+      res.status(200).json(geoJsonResponse);
+    } catch (error) {
+      logger.error(`[${requestId}] getHotelGeolocation: Error occurred`, {
+        error: error.message,
+        stack: error.stack,
+        params: req.params,
+      });
+      res
+        .status(500)
+        .json({
+          error: 'Failed to fetch hotel geolocation',
+          details: error.message,
+        });
     }
   },
 };
