@@ -177,11 +177,11 @@ const HotelController = {
 
   async createHotel(req, res) {
     try {
-      const { name, categoryid, hotelchainid } = req.body;
+      const { name, categoryid } = req.body;
 
-      if (!name || !categoryid || !hotelchainid) {
+      if (!name || !categoryid) {
         return res.status(400).json({
-          error: 'Name, category ID, and hotel chain ID are required',
+          error: 'Name and category ID are required',
         });
       }
 
